@@ -33,13 +33,13 @@ class MLSystemManager:
         self.sessions = []
         self.doc_string = textwrap.dedent('''
                             ML toolkit manager
-                            Usage: python toolkit.manager -L [learningAlgorithm] -A [ARFF_File] -E [EvaluationMethod] {[ExtraParamters]} [-N] [-R seed]
+                            Usage: python -m toolkit.manager -L [learningAlgorithm] -A [ARFF_File] -E [EvaluationMethod] {[ExtraParamters]} [-N] [-R seed]
 
                             Possible evaluation methods are:
-                            python toolkit.manager -L [learningAlgorithm] -A [ARFF_File] -E training
-                            python toolkit.manager -L [learningAlgorithm] -A [ARFF_File] -E static [TestARFF_File]
-                            python toolkit.manager -L [learningAlgorithm] -A [ARFF_File] -E random [PercentageForTraining]
-                            python toolkit.manager -L [learningAlgorithm] -A [ARFF_File] -E cross [numOfFolds]''')
+                            python -m toolkit.manager -L [learningAlgorithm] -A [ARFF_File] -E training
+                            python -m toolkit.manager -L [learningAlgorithm] -A [ARFF_File] -E static [TestARFF_File]
+                            python -m toolkit.manager -L [learningAlgorithm] -A [ARFF_File] -E random [PercentageForTraining]
+                            python -m toolkit.manager -L [learningAlgorithm] -A [ARFF_File] -E cross [numOfFolds]''')
 
     def create_new_session(self, arff_file, learner, eval_method, eval_parameter=None, print_confusion_matrix=False, normalize=False, random_seed=None):
         """
