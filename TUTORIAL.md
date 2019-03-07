@@ -22,6 +22,11 @@ my_array[0:2, 3:]
 
 # Get every other row, start at last column and go backward
 my_array[::2, -1::-1]
+
+# Get indices for all rows that have a 5 in them
+row_idx = np.where(my_array==5)[0]
+my_array[row_idx]
+
 ```
 
 ### Arff object class
@@ -32,7 +37,7 @@ arff_path = r"./test/datasets/creditapproval.arff"
 credit_approval = arff.Arff(arff=arff_path, label_count=1)
 ```
 
-Here, `credit_approval` is an Arff object. The Arff object is mostly a wrapper around a 2D numpy array, which is stored as the 'data' Arff class variable, i.e. `credit.data`. The Arff object also contains all the information needed to recreate the Arff file, including feature names, the number of columns that are considered "outputs" (labels), whether each feature is nominal or continuous, and the list of possible values for nominal features. Note that:
+Here, `credit_approval` is an Arff object. The Arff object is mostly a wrapper around a 2D numpy array, which is stored as the 'data' Arff class variable, i.e. `credit_approval.data`. The Arff object also contains all the information needed to recreate the Arff file, including feature names, the number of columns that are considered "outputs" (labels), whether each feature is nominal or continuous, and the list of possible values for nominal features. Note that:
 
 * The Arff object automatically encodes nominal/string features as integers. 
 * The toolkit presently supports 1 label, which is assumed to be the rightmost column(s). The number of labels should be passed explicitly with `label_count`.
@@ -64,7 +69,7 @@ new_arff = Arff(credit_approxal, row_idx = 1, label_count=1)
 new_arff = Arff(credit_approxal, row_idx = [2,3,8], col_idx = [1,2,3], label_count=1)
 ```
 
-This new_Arff object will should copy the numpy array data underlying the original Arff. Arff.copy() can also be used to make a safe, deep copy of an Arff object.
+This ```new_Arff``` object will should copy the numpy array data underlying the original Arff. ```Arff.copy()``` can also be used to make a safe, deep copy of an Arff object.
 
 To get the features of an Arff object as another Arff object, one can simply call:
 ```credit_approval.get_features()```
@@ -95,7 +100,7 @@ print(features.shape)
 
 ### Creating Learners
 
-See the baseline_learner.py and its `BaselineLearner` class for an example of
+See the ```baseline_learner.py``` and its `BaselineLearner` class for an example of
 the format of the learner. Learning models should inherit from the `SupervisedLearner` base class and override
 the `train()` and `predict()` functions. It should probably also have a constructor, i.e. `def __init__(self, argument1, argument2):` that can be used to initialize learner weights, hyperparameters, etc.
 
@@ -159,7 +164,7 @@ session2 = manager.ToolkitSession(arff=credit_approval, learner=my_learner, eval
 ```
 
 ### Graphing
-A tiny graphing wrapper around matplotlib is included. See graph_tools.py.
+A tiny graphing wrapper around matplotlib is included. See ```graph_tools.py```.
 
 ```
 from toolkit import graph_tools
@@ -182,6 +187,8 @@ y = credit_approval[:,2]
 labels = credit_approval[:, -1]
 graph_tools.graph(x=x, y=y, labels=labels, xlim=(0,30), ylim=(0,30))
 ```
+
+![alt text](https://raw.githubusercontent.com/cs478ta/CS478.github.io/master/toolkitPython/Scatter.png)
 
 ### Command-line:
 Training and testing can be performed via command-line (as in the Java and C++ toolkits).

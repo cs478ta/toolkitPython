@@ -60,4 +60,5 @@ plt.show()
 x = credit_approval[:,1]
 y = credit_approval[:,2]
 labels = credit_approval[:, -1]
-graph_tools.graph(x=x, y=y, labels=labels, xlim=(0,30), ylim=(0,30))
+graph_tools.graph(x=x, y=y, labels=labels, xlim=(0,30), ylim=(0,30), title="Credit Approval")
+

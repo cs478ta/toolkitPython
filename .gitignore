@@ -4,6 +4,7 @@ __pycache__/
 
 # Implemented components
 implemented/
+datasets/
 *.ipynb
 
 # C extensions
