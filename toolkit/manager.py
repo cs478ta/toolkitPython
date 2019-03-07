@@ -281,8 +281,8 @@ class ToolkitSession:
             start_test = int(i * self.arff.shape[0] / folds)
             end_test = int((i + 1) * self.arff.shape[0] / folds)
 
-            train_features = self.arff.get_features(row_idx=np.r_[0:start_test, end_test:])
-            train_labels = self.arff.get_labels(row_idx=np.r_[0:start_test, end_test:])
+            train_features = self.arff.get_features(row_idx=np.r_[0:start_test, end_test:self.arff.shape[0]])
+            train_labels = self.arff.get_labels(row_idx=np.r_[0:start_test, end_test:self.arff.shape[0]])
 
             test_features = self.arff.get_features(slice(start_test,end_test))
             test_labels = self.arff.get_labels(slice(start_test,end_test))
