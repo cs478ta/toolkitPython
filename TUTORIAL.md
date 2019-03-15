@@ -40,7 +40,7 @@ credit_approval = arff.Arff(arff=arff_path, label_count=1)
 Here, `credit_approval` is an Arff object. The Arff object is mostly a wrapper around a 2D numpy array, which is stored as the 'data' Arff class variable, i.e. `credit_approval.data`. The Arff object also contains all the information needed to recreate the Arff file, including feature names, the number of columns that are considered "outputs" (labels), whether each feature is nominal or continuous, and the list of possible values for nominal features. Note that:
 
 * The Arff object automatically encodes nominal/string features as integers. 
-* The toolkit presently supports 1 label, which is assumed to be the rightmost column(s). The number of labels should be passed explicitly with `label_count`.
+* The toolkit presently supports multiple labels, which are assumed to be the rightmost column(s). The number of labels should be passed explicitly with `label_count`, which is typically 1.
 * `print(credit_approval)` will print the object as Arff text. Alternatively, a .arff style string can be obtained by taking `str(credit_approval)`.
 
 The Arff object can also be sliced like traditional numpy arrays. E.g., the first row of data as a numpy array would be:
