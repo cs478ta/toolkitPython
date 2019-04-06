@@ -23,7 +23,7 @@ class Arff:
     To do: Change backend to use Pandas dataframe
     """
 
-    def __init__(self, arff=None, row_idx=None, col_idx=None, label_count=None, name="Untitled"):
+    def __init__(self, arff=None, row_idx=None, col_idx=None, label_count=None, name="Untitled", numeric=True, missing=float("NaN")):
         """
         Args:
             arff (str or Arff object): Path to arff file or another arff file
@@ -41,8 +41,9 @@ class Arff:
         self.str_to_enum = []  # list of dictionaries
         self.enum_to_str = []  # list of dictionaries
         self.label_columns = []
-        self.MISSING = float("NaN")
+        self.MISSING = missing
         self.label_count = label_count
+        self.numeric = numeric
 
         if isinstance(arff, Arff): # Make a copy of arff file
             logger.debug("Creating ARFF from ARFF object")
@@ -144,14 +145,22 @@ class Arff:
                         val_idx = 0
                         # print("{}".format(line))
                         vals = line.split(",")
-                        row = np.zeros((len(vals)))
+                        if self.numeric:
+                            row = np.zeros(len(vals))
+                        else:
+                            row = np.empty(len(vals), dtype=object)
+
                         for i,val in enumerate(vals):
                             val = val.strip()
                             if not val:
                                 raise Exception("Missing data element in row with data '{}'".format(line))
                             else:
-                                row[val_idx] = float(
-                                    self.MISSING if val == "?" else self.str_to_enum[val_idx].get(val, val))
+                                if self.numeric: # record indices for nominal variables
+                                    row[val_idx] = float(
+                                        self.MISSING if val == "?" else self.str_to_enum[val_idx].get(val, val))
+                                else: # record actual values
+                                    row[val_idx] = self.MISSING if val == "?" else val
+
 
                                 # Capture missings in str_to_enum
                                 # if val == "?" and self.str_to_enum[i] and not "?" in self.str_to_enum:
@@ -161,7 +170,6 @@ class Arff:
                                 #     self.enum_to_str[i][num] = "?"
 
                             val_idx += 1
-
                         rows += [row]
         self.data = np.array(rows)
 
@@ -367,10 +375,13 @@ class Arff:
                 out_string += (" CONTINUOUS") + "\n"
 
         out_string += ("@DATA") + "\n"
+
+        ## i idx
         for i in range(self.shape[0]):
             r = self.data[i]
-
             values = []
+
+            # j idx
             for j in range(len(r)):
                 if not self.is_nominal(j):
                     if not self.is_missing(r[j]):
@@ -379,7 +390,10 @@ class Arff:
                         values.append("?")
                 else:
                     try:
-                        values.append(self.enum_to_str[j][r[j]])
+                        if self.numeric:
+                            values.append(self.enum_to_str[j][r[j]])
+                        else:
+                            values.append(r[j])
                     except(Exception) as e:
                         #print(out_string,values)
                         if self.is_missing(r[j]):
@@ -516,9 +530,9 @@ class Arff:
     # __iter__() and __getitem__()
 
     def is_missing(self, value):
-        if self.MISSING == np.inf:
-            return value == np.inf
-        if np.isnan(self.MISSING):
+        if self.MISSING in [np.inf, "?"]:
+            return value == self.MISSING
+        elif np.isnan(self.MISSING):
             return np.isnan(value)
 
 class DoubleDict(dict):
