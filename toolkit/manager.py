@@ -132,7 +132,7 @@ class ToolkitSession:
                     * Learner keyword arguments can be passed to the session
                     * A learner class can also already be instantiated when passed
         """
-    def __init__(self, arff, learner, eval_method=None, eval_parameter=None, print_confusion_matrix=False, normalize=False, random_seed=None, label_count=1, **kwargs):
+    def __init__(self, arff, learner, eval_method=None, eval_parameter=None, print_confusion_matrix=False, normalize=False, random_seed=None, label_count=1, verbose=True, **kwargs):
         """
         Args:
             arff: Can be arff path, numpy array, or arff object
@@ -162,6 +162,7 @@ class ToolkitSession:
         self.eval_method = eval_method
         self.eval_parameter = eval_parameter
         self.normalize = normalize
+        self.verbose = verbose
 
         self.training_accuracy = []
         self.test_accuracy = []
@@ -176,12 +177,12 @@ class ToolkitSession:
             self.arff.normalize()
 
         # print some stats
-        print("\nDataset name: {}\n"
-              "Number of instances: {}\n"
-              "Number of attributes: {}\n"
-              "Learning algorithm: {}\n"
-              "Evaluation method: {}\n".format(arff, self.arff.shape[0], self.arff.shape[1], self.learner_name, self.eval_method))
-
+        if self.verbose:
+            print("\nDataset name: {}\n"
+                  "Number of instances: {}\n"
+                  "Number of attributes: {}\n"
+                  "Learning algorithm: {}\n"
+                  "Evaluation method: {}\n".format(arff, self.arff.shape[0], self.arff.shape[1], self.learner_name, self.eval_method))
         if not eval_method is None:
             self.main()
 
@@ -211,6 +212,10 @@ class ToolkitSession:
             raise Exception("Unrecognized evaluation method '{}'".format(self.eval_method))
 
     def training_test_split(self, train_percent=.9):
+        return ToolkitSession.split_data(self.arff, train_percent, verbose=self.verbose)
+
+    @staticmethod
+    def split_data(arff, train_percent=.9, verbose=False):
         """ Arff object with labels included
         Args:
             train_percent:
@@ -218,24 +223,41 @@ class ToolkitSession:
         Returns:
             Tuple: train_features, train_labels, test_features, test_labels
         """
-        self.arff.shuffle()
+        arff.shuffle()
 
-        print("Calculating accuracy on a random hold-out set...")
+        if verbose:
+            print("Calculating accuracy on a random hold-out set...")
         train_percent = float(train_percent)
         if train_percent < 0 or train_percent > 1:
             raise Exception("Percentage for random evaluation must be between 0 and 1")
-        print("Percentage used for training: {}".format(rnd4(train_percent)))
-        print("Percentage used for testing: {}".format(rnd4(1 - train_percent)))
+        if verbose:
+            print("Percentage used for training: {}".format(rnd4(train_percent)))
+            print("Percentage used for testing: {}".format(rnd4(1 - train_percent)))
 
-        train_size = int(train_percent * self.arff.shape[0])
+        train_size = int(train_percent * arff.shape[0])
 
-        train_features = self.arff.get_features(slice(0, train_size))
-        train_labels = self.arff.get_labels(slice(0, train_size))
+        train_features = arff.get_features(slice(0, train_size))
+        train_labels = arff.get_labels(slice(0, train_size))
 
-        test_features = self.arff.get_features(slice(train_size, None))
-        test_labels = self.arff.get_labels(slice(train_size, None))
+        test_features = arff.get_features(slice(train_size, None))
+        test_labels = arff.get_labels(slice(train_size, None))
 
         return train_features, train_labels, test_features, test_labels
+
+    @staticmethod
+    def split_numpy_array(arr, train_percent=.9, seed=None):
+        train_size = int(train_percent * arr.shape[0])
+
+        if seed is None:
+            local_random = random.Random()
+            np.random.seed(local_random.randint(1, 100000))
+        else:
+            np.random.seed(seed)
+
+        np.random.shuffle(arr)
+        train = arr[0:train_size]
+        test  = arr[train_size:None]
+        return train, test
 
     def train(self, features=None, labels=None):
         """By default, this trains on entire arff file. Features and labels options are given to e.g.
