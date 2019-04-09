@@ -374,6 +374,7 @@ class Arff:
             reference_data = self
         if col_list is None:
             col_list = range(0,self.shape[1])
+        print(exclude_labels)
         if exclude_labels:
             col_list = [c for c in col_list if c not in self.get_label_indices()]
         _func = Arff._standardize if standardize else Arff._normalize
