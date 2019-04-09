@@ -83,6 +83,7 @@ class Arff:
         self.attr_names = [""] * cols
         self.str_to_enum = []
         self.enum_to_str = []
+        return self
 
     def load_arff(self, filename):
         """Load matrix from an ARFF file"""
@@ -260,6 +261,7 @@ class Arff:
         self.attr_types = slicer(arff.attr_types,col_idx)
         self.str_to_enum = slicer(arff.str_to_enum,col_idx)
         self.enum_to_str = slicer(arff.enum_to_str,col_idx)
+        return self
 
     def get_features(self, row_idx=None):
         """ Return features as 2D array
@@ -282,6 +284,10 @@ class Arff:
         start_idx = self.shape[1] if -self.label_count == 0 else -self.label_count # return nothing if no labels
         new_arff = self.create_subset_arff(row_idx=row_idx, col_idx=slice(start_idx, None), label_count=self.label_count)
         return new_arff
+
+    def get_label_indices(self):
+        all_idx = list(range(0,self.shape[1]))
+        return all_idx[-self.label_count:]
 
     def attr_name(self, col):
         """Get the name of the specified attribute"""
@@ -352,13 +358,45 @@ class Arff:
         (val, count) = stats.mode(col_data[np.isfinite(col_data)])
         return val[0]
 
-    def normalize(self):
-        """Normalize each column of continuous values"""
-        for i in range(self.shape[1]):
+    def normalize(self, reference_data=None, col_list=None, exclude_labels=False, standardize=False):
+        """ Normalize each column of continuous values
+
+        Args:
+            reference_data (Arff): An arff file to pull statistics from
+            col_list (iterable): A list of column indices
+            exclude_labels (bool): True excludes label columns from normalization
+            standardize (bool): True will subtract mean and divide by std dev; false subtracts min and divides by range
+
+        Returns:
+
+        """
+        if reference_data is None:
+            reference_data = self
+        if col_list is None:
+            col_list = range(0,self.shape[1])
+        if exclude_labels:
+            col_list = [c for c in col_list if c not in self.get_label_indices()]
+        _func = Arff._standardize if standardize else Arff._normalize
+
+        for i in col_list:
             if self.unique_value_count(i) == 0:  # is continuous
-                min_val = self.column_min(i)
-                max_val = self.column_max(i)
-                self.data[:, i] = (self.data[:, i] - min_val) / (max_val - min_val)
+                self.data[:, i] = _func(col=self.data[:, i], ref_col=reference_data.data[:, i])
+        return self
+
+    @staticmethod
+    def _standardize(col,ref_col=None):
+        if ref_col is None:
+            ref_col=col
+        return (col - np.mean(ref_col, axis=0)) / np.std(ref_col, axis=0)
+
+    @staticmethod
+    def _normalize(col,ref_col=None):
+        if ref_col is None:
+            ref_col=col
+
+        min_val = np.min(ref_col)
+        max_val = np.max(ref_col)
+        return (col -  min_val) / (max_val - min_val)
 
     def get_arff_as_string(self):
         """ Print arff class as arff-style string

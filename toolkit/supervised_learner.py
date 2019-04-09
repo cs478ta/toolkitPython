@@ -29,6 +29,8 @@ class SupervisedLearner:
         raise NotImplementedError()
 
     def check_shape(self, arr1, arr2):
+        if arr1 is None or arr2 is None:
+            raise Exception("Array cannot be None")
         try:
             assert arr1.shape[0]==arr2.shape[0] # must have same number of instances
         except:
@@ -67,8 +69,13 @@ class SupervisedLearner:
 
     def calc_mse(self, features, labels):
         self.check_shape(features, labels)
+
+        if isinstance(labels, Arff):
+            targ = (labels.data).astype(int)
+        else:
+            targ = (labels).astype(int)
+
         feat = features
-        targ = labels
         pred = np.asarray(self.predict_all(feat))
         delta = targ - pred
         sse = np.sum(delta**2)

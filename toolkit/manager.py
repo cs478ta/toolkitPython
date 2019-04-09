@@ -169,8 +169,11 @@ class ToolkitSession:
 
         # load the ARFF file
         self.arff = Arff(arff, label_count=label_count)
+
         if isinstance(arff, Arff):
-            arff = arff.dataset_name
+            arff_name = arff.dataset_name
+        else:
+            arff_name = arff
 
         if self.normalize:
             print("Using normalized data")
@@ -182,7 +185,7 @@ class ToolkitSession:
                   "Number of instances: {}\n"
                   "Number of attributes: {}\n"
                   "Learning algorithm: {}\n"
-                  "Evaluation method: {}\n".format(arff, self.arff.shape[0], self.arff.shape[1], self.learner_name, self.eval_method))
+                  "Evaluation method: {}\n".format(arff_name, self.arff.shape[0], self.arff.shape[1], self.learner_name, self.eval_method))
         if not eval_method is None:
             self.main()
 
@@ -268,7 +271,8 @@ class ToolkitSession:
         Returns:
 
         """
-        print("Calculating accuracy on training set...")
+        if self.verbose:
+            print("Calculating accuracy on training set...")
 
         if features is None:
             features = self.arff.get_features()
@@ -278,20 +282,32 @@ class ToolkitSession:
         start_time = time.time()
         self.learner.train(features, labels)
         elapsed_time = time.time() - start_time
-        print("Time to train (in seconds): {}".format(rnd4(elapsed_time)))
+        if self.verbose:
+            print("Time to train (in seconds): {}".format(rnd4(elapsed_time)))
         accuracy = self.learner.measure_accuracy(features, labels)
         self.training_accuracy.append(accuracy)
-        print("Training set accuracy: {}".format(rnd4(accuracy)))
+        if self.verbose:
+            print("Training set accuracy: {}".format(rnd4(accuracy)))
 
 
     def test(self, features, labels):
             """ This eval_method 1) creates a 'random' training/test split according to some user-specified percentage,
                             2) trains the data
                             3) reports training AND test accuracy
+
+            Args:
+                features:
+                labels:
+
+            Returns:
+                float: Accuracy/error of test set
             """
+
             test_accuracy = self.learner.measure_accuracy(features, labels)
             self.test_accuracy.append(test_accuracy)
-            print("Test set accuracy: {}".format(rnd4(test_accuracy)))
+            if self.verbose:
+                print("Test set accuracy: {}".format(rnd4(test_accuracy)))
+            return test_accuracy
 
     def _print_confusion_matrix(self, features, labels):
         if self.print_confusion_matrix_flag:
